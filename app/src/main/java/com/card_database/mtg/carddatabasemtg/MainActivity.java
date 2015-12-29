@@ -13,21 +13,16 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.CheckBox;
-import android.widget.EditText;
-import android.widget.FilterQueryProvider;
 import android.widget.ListView;
 import android.widget.ScrollView;
-import android.widget.SimpleCursorAdapter;
 import android.widget.Spinner;
 import android.widget.TextView;
 
@@ -38,15 +33,15 @@ import java.util.ArrayList;
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
-    final String[] CMC = {"", "0",  "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16"};
-    final String[] PT = {"", "-1", "0",  "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "*", "1+*", "2+*", "7-*", "*^2"};
+    final String[] CMC = {"", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16"};
+    final String[] PT = {"", "-1", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "*", "1+*", "2+*", "7-*", "*^2"};
 
     AutoCompleteTextView nameField;
     Cursor cursor;
     Spinner cmcNum, powNum, tougNum;
     Button search;
     TextView supertype, type, text;
-    CheckBox w,u,b,r,g;
+    CheckBox w, u, b, r, g;
     ScrollView scrollView;
     Context context = this;
 
@@ -105,7 +100,7 @@ public class MainActivity extends AppCompatActivity
         g = (CheckBox) findViewById(R.id.gCheckBox);
         scrollView = (ScrollView) findViewById(R.id.scrollView);
 
-        if(!Setting.WantToDownload)database = new CardbaseHelper(this).getReadableDatabase();
+        if (!Setting.WantToDownload) database = new CardbaseHelper(this).getReadableDatabase();
 
         search = (Button) findViewById(R.id.searchButton);
 
@@ -153,18 +148,37 @@ public class MainActivity extends AppCompatActivity
 
                 //здесь создаем адаптер
 
-                if(cursor.getCount() != 0) {
-
-
+                if (cursor.getCount() != 0) {
+                    Card[] data = new Card[cursor.getCount()];
+                    Card item;
                     fragmentManager = getFragmentManager();
                     fragmentTransaction = fragmentManager.beginTransaction();
 
                     fragment = new BlankFragment();
                     fragmentTransaction.add(R.id.fragment, fragment);
-                    ArrayList<String> arrayList = new ArrayList<String>();
+                    //ArrayList<String> arrayList = new ArrayList<String>();
 
+                    int i = 0;
                     while (true) {
-                        arrayList.add(
+                        item = new Card(cursor.getString(cursor.getColumnIndex(DatabaseContract.CARD_NAME_COLLUMN)),
+                                cursor.getString(cursor.getColumnIndex(DatabaseContract.CARD_COST_COLLUMN)),
+                                null, null, cursor.getString(cursor.getColumnIndex(DatabaseContract.CARD_SUPERTYPES_COLLUMN)),
+                                cursor.getString(cursor.getColumnIndex(DatabaseContract.CARD_TYPES_COLLUMN)),
+                                cursor.getString(cursor.getColumnIndex(DatabaseContract.CARD_SUBTYPES_COLLUMN)),
+                                cursor.getString(cursor.getColumnIndex(DatabaseContract.CARD_TEXT_COLLUMN)),
+                                cursor.getString(cursor.getColumnIndex(DatabaseContract.CARD_POWER_COLLUMN)),
+                                cursor.getString(cursor.getColumnIndex(DatabaseContract.CARD_TOUGHNESS_COLLUMN)),
+                                null);
+                        data[i] = item;
+//                        data[i].NAME = cursor.getString(cursor.getColumnIndex(DatabaseContract.CARD_NAME_COLLUMN));
+//                        data[i].MANACOST = cursor.getString(cursor.getColumnIndex(DatabaseContract.CARD_COST_COLLUMN));
+//                        data[i].SUPERTYPES = cursor.getString(cursor.getColumnIndex(DatabaseContract.CARD_SUPERTYPES_COLLUMN));
+//                        data[i].TYPES = cursor.getString(cursor.getColumnIndex(DatabaseContract.CARD_TYPES_COLLUMN));
+//                        data[i].SUBTYPES = cursor.getString(cursor.getColumnIndex(DatabaseContract.CARD_SUBTYPES_COLLUMN));
+//                        data[i].TEXT = cursor.getString(cursor.getColumnIndex(DatabaseContract.CARD_TEXT_COLLUMN));
+//                        data[i].POWER = cursor.getString(cursor.getColumnIndex(DatabaseContract.CARD_POWER_COLLUMN));
+//                        data[i].TOUGHNESS = cursor.getString(cursor.getColumnIndex(DatabaseContract.CARD_TOUGHNESS_COLLUMN));
+                        /*arrayList.add(
                                 cursor.getString(cursor.getColumnIndex(DatabaseContract.CARD_NAME_COLLUMN)) + " " +
                                         cursor.getString(cursor.getColumnIndex(DatabaseContract.CARD_COST_COLLUMN)) + "\n" +
                                         cursor.getString(cursor.getColumnIndex(DatabaseContract.CARD_SUPERTYPES_COLLUMN)) + " " +
@@ -173,20 +187,20 @@ public class MainActivity extends AppCompatActivity
                                         cursor.getString(cursor.getColumnIndex(DatabaseContract.CARD_TEXT_COLLUMN)) + "\n" +
                                         cursor.getString(cursor.getColumnIndex(DatabaseContract.CARD_POWER_COLLUMN)) + "/" +
                                         cursor.getString(cursor.getColumnIndex(DatabaseContract.CARD_TOUGHNESS_COLLUMN))
-                        );
-                        if(!cursor.moveToNext())
+                        );*/
+                        i++;
+                        if (!cursor.moveToNext())
                             break;
                     }
 
-                    searchConditions = arrayList.toArray(searchConditions);
-
-                    ArrayAdapter<String> adapter1 = new ArrayAdapter<String>(context, android.R.layout.simple_list_item_1, searchConditions);
-
+                    //searchConditions = arrayList.toArray(searchConditions);
+                    MainAdapter mainAdapter = new MainAdapter(getApplicationContext(), data);
+                    //ArrayAdapter<String> adapter1 = new ArrayAdapter<String>(context, android.R.layout.simple_list_item_1, searchConditions);
                     scrollView.setVisibility(View.INVISIBLE);
 
                     ListView listView = (ListView) findViewById(R.id.listRes);
-                    listView.setAdapter(adapter1);
-
+                    //listView.setAdapter(adapter1);
+                    listView.setAdapter(mainAdapter);
 
 
                     fragmentTransaction.commit();
@@ -197,7 +211,7 @@ public class MainActivity extends AppCompatActivity
         });
 
 
-        if(savedInstanceState != null) {
+        if (savedInstanceState != null) {
             cmcNum.setSelection(savedInstanceState.getInt(CMC_KEY2));
             powNum.setSelection(savedInstanceState.getInt(POW_KEY2));
             tougNum.setSelection(savedInstanceState.getInt(TOUG_KEY2));
@@ -296,19 +310,22 @@ public class MainActivity extends AppCompatActivity
 
         ArrayList<String> searchConditions = new ArrayList<>();
 
-        if(!nameField.getText().toString().equals("")) {
+        if (!nameField.getText().toString().equals("")) {
             ans += DatabaseContract.CARD_NAME_COLLUMN + " = " + "?";
             searchConditions.add(nameField.getText().toString());
         }
 
-        if(!supertype.getText().toString().equals("")) {
-            if(!ans.equals(""))
+        if (!supertype.getText().toString().equals("")) {
+            if (!ans.equals(""))
                 ans += " AND ";
             String[] s = supertype.getText().toString().split(" ");
             String supertypes = "", types = "";
-            for(int i = 0; i < s.length; i++) {
+            for (int i = 0; i < s.length; i++) {
                 switch (s[i].toLowerCase()) {
-                    case "legendary":case "basic":case "snow":case "world":
+                    case "legendary":
+                    case "basic":
+                    case "snow":
+                    case "world":
                         supertypes += s[i];
                         break;
                     default:
@@ -316,41 +333,41 @@ public class MainActivity extends AppCompatActivity
                         break;
                 }
             }
-            if(supertypes.length() != 0) {
+            if (supertypes.length() != 0) {
                 ans += DatabaseContract.CARD_SUPERTYPES_COLLUMN + " = " + "?";
                 searchConditions.add(supertypes);
             }
-            if(!ans.equals("") && ans.charAt(ans.length() - 1) != ' ')
+            if (!ans.equals("") && ans.charAt(ans.length() - 1) != ' ')
                 ans += " AND ";
-            if(types.length() != 0) {
+            if (types.length() != 0) {
                 ans += DatabaseContract.CARD_TYPES_COLLUMN + " = " + "?";
                 searchConditions.add(types);
             }
         }
 
-        if(!type.getText().toString().equals("")) {
-            if(!ans.equals(""))
+        if (!type.getText().toString().equals("")) {
+            if (!ans.equals(""))
                 ans += " AND ";
             ans += DatabaseContract.CARD_SUBTYPES_COLLUMN + " = " + "?";
             searchConditions.add(type.getText().toString());
         }
 
-        if(!cmcNum.getItemAtPosition(cmcNum.getSelectedItemPosition()).equals("")) {
-            if(!ans.equals(""))
+        if (!cmcNum.getItemAtPosition(cmcNum.getSelectedItemPosition()).equals("")) {
+            if (!ans.equals(""))
                 ans += " AND ";
             ans += DatabaseContract.CARD_CMC_COLLUMN + " = " + "?";
             searchConditions.add(cmcNum.getItemAtPosition(cmcNum.getSelectedItemPosition()).toString());
         }
 
-        if(!powNum.getItemAtPosition(powNum.getSelectedItemPosition()).equals("")) {
-            if(!ans.equals(""))
+        if (!powNum.getItemAtPosition(powNum.getSelectedItemPosition()).equals("")) {
+            if (!ans.equals(""))
                 ans += " AND ";
             ans += DatabaseContract.CARD_POWER_COLLUMN + " = " + "?";
             searchConditions.add(powNum.getItemAtPosition(powNum.getSelectedItemPosition()).toString());
         }
 
-        if(!tougNum.getItemAtPosition(tougNum.getSelectedItemPosition()).equals("")) {
-            if(!ans.equals(""))
+        if (!tougNum.getItemAtPosition(tougNum.getSelectedItemPosition()).equals("")) {
+            if (!ans.equals(""))
                 ans += " AND ";
             ans += DatabaseContract.CARD_TOUGHNESS_COLLUMN + " = " + "?";
             searchConditions.add(tougNum.getItemAtPosition(tougNum.getSelectedItemPosition()).toString());
@@ -358,26 +375,26 @@ public class MainActivity extends AppCompatActivity
 
         String colors = "";
 
-        if(b.isChecked())
-            colors+= "black";
-        if(u.isChecked())
-            colors+= "blue";
-        if(r.isChecked())
-            colors+= "red";
-        if(g.isChecked())
-            colors+= "green";
-        if(w.isChecked())
-            colors+= "white";
-        if(colors != "") {
-            if(!ans.equals(""))
-                ans+= " AND ";
+        if (b.isChecked())
+            colors += "black";
+        if (u.isChecked())
+            colors += "blue";
+        if (r.isChecked())
+            colors += "red";
+        if (g.isChecked())
+            colors += "green";
+        if (w.isChecked())
+            colors += "white";
+        if (colors != "") {
+            if (!ans.equals(""))
+                ans += " AND ";
             ans += DatabaseContract.CARD_COLORS_COLLUMN + " = " + "?";
             searchConditions.add(colors);
         }
 
-        if(text.getText().toString().length() != 0) {
-            if(!ans.equals(""))
-                ans+= " AND ";
+        if (text.getText().toString().length() != 0) {
+            if (!ans.equals(""))
+                ans += " AND ";
             ans += DatabaseContract.CARD_TEXT_COLLUMN + " LIKE " + "?";
             searchConditions.add(text.getText().toString());
         }
